@@ -5,6 +5,23 @@ This module is use by the application [https://github.com/Kidoly/monitorflow](mo
 
 ### Requirements
 * Rust (latest stable version recommended)
+* xcb
+
+##### For Debian/Ubuntu-based distributions:
+```
+sudo apt-get update
+sudo apt-get install libxcb1-dev
+```
+##### For Fedora, CentOS, RHEL:
+```
+sudo dnf install libxcb-devel  # Use dnf on Fedora
+# or
+sudo yum install libxcb-devel  # Use yum on CentOS/RHEL
+```
+##### For Fedora, CentOS, RHEL:
+```
+sudo pacman -S libxcb
+```
 
 ### Installation
 #### Step 1: Clone the Repository
@@ -32,7 +49,6 @@ To run the program, navigate to the directory containing the binary and execute 
 ```
 cargo run
 ```
-It will download all the crates for the porgram to run.
 
 ### Setting Up Automatic Launch
 #### Linux (Using systemd)
