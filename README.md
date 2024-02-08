@@ -73,7 +73,7 @@ cargo run
 
 ```
 [Unit]
-Description=MonitorFlow Module
+Description=MonitorFlow Module Service
 
 [Service]
 ExecStart=/path/to/monitorflowmodule
@@ -85,11 +85,27 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
+For example if you put the program in your home it should look like this:
+
+```
+[Unit]
+Description=MonitorFlow Module Service
+
+[Service]
+ExecStart=/home/kidoly/monitorflowmodule/target/release/monitorflowmodule
+WorkingDirectory=/home/kidoly/monitorflowmodule
+EnvironmentFile=/home/kidoly/monitorflowmodule/.env
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
 2. Enable and start the service:
 
 ```
-sudo systemctl enable yourprogram.service
-sudo systemctl start yourprogram.service
+sudo systemctl enable monitorflowmodule.service
+sudo systemctl start monitorflowmodule.service
 ```
 
-This will set your program to start automatically at boot.
+This will set monitorflowmodule to start automatically at boot.
