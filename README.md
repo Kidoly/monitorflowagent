@@ -2,7 +2,7 @@
 
 ### Description
 
-This module is used by the application [https://github.com/Kidoly/monitorflow](monitorflow) to monitor multiple servers/computer. It need to be installed on each server.
+This module is used by the application [monitorflow](https://github.com/Kidoly/monitorflow) to monitor multiple servers/computer. It need to be installed on each server.
 
 ### Requirements
 
