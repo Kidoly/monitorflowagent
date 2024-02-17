@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sys.refresh_all();
 
 	    if let Some(monitor) = monitors.first() {
-            let data = generate_data(sys, disks, networks, components, monitor, &password); // Pass password here
+            let data = generate_data(sys, disks, networks, components, monitor, &password, &interval);
             let client = reqwest::Client::new();
             println!("{:#?}", data);
 
@@ -58,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, password: &str) -> serde_json::Value {
+fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, password: &str, interval: &u64) -> serde_json::Value {
     let monitor_image = match monitor.capture_image().map(|image| to_base64(image)) {
         Ok(image) => image,
         Err(e) => {
@@ -68,6 +68,7 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
     };
     serde_json::json!({
         "password": password,
+        "interval_time" : interval,
         "start_time": System::boot_time(),
         "total_memory": sys.total_memory().to_string(),
         "used_memory": sys.used_memory().to_string(),
