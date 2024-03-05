@@ -1,6 +1,6 @@
 use std::io::Cursor;
-
-use sysinfo::{System, Disks, Networks, Components};
+use std::thread;
+use sysinfo::{System, Disks, Networks, Components, RefreshKind, CpuRefreshKind};
 use tokio::time::{sleep, Duration};
 use xcap::{Monitor, image::{RgbaImage}};
 use std::env;
@@ -59,6 +59,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, password: &str, interval: &u64) -> serde_json::Value {
+    let mut total_cpu_usage = 0.0;
+    let mut cpu_count = 0;
+
+    for cpu in sys.cpus() {
+        total_cpu_usage += cpu.cpu_usage();
+        cpu_count += 1;
+    }
+
+    let avg_cpu_usage = total_cpu_usage / cpu_count as f32;
+
     let monitor_image = match monitor.capture_image().map(|image| to_base64(image)) {
         Ok(image) => image,
         Err(e) => {
@@ -66,6 +76,7 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
             String::new()
         }
     };
+
     serde_json::json!({
         "password": password,
         "interval_time" : interval,
@@ -80,6 +91,7 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
         "host_name": System::host_name(),
         "cpu_count": sys.cpus().len(),
         "cpu_name": sys.cpus()[0].brand(),
+        "cpu_usage": avg_cpu_usage,
         "disks_numbers": disks.len(),
         "disks": disks.iter().map(|disk|{format!("{disk:#?}")}).collect::<Vec<_>>(),
         "networks": networks.iter().map(|network|{format!("{network:#?}")}).collect::<Vec<_>>(),
