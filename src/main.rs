@@ -10,7 +10,7 @@ use dotenv::dotenv;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok(); // Load .env file
 
-    let password = env::var("PASSWORD").expect("PASSWORD not set in .env file");
+    let api_key = env::var("API_KEY").expect("API_KEY not set in .env file");
     let api_url = env::var("API_URL").expect("API_URL not set in .env file");
     let interval: u64 = env::var("INTERVAL")
         .expect("INTERVAL not set in .env file")
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sys.refresh_all();
 
 	    if let Some(monitor) = monitors.first() {
-            let data = generate_data(sys, disks, networks, components, monitor, &password, &interval);
+            let data = generate_data(sys, disks, networks, components, monitor, &api_key, &interval);
             let client = reqwest::Client::new();
             println!("{:#?}", data);
 
@@ -58,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, password: &str, interval: &u64) -> serde_json::Value {
+fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, api_key: &str, interval: &u64) -> serde_json::Value {
     let mut total_cpu_usage = 0.0;
     let mut cpu_count = 0;
 
@@ -78,7 +78,7 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
     };
 
     serde_json::json!({
-        "password": password,
+        "api_key": api_key,
         "interval_time" : interval,
         "start_time": System::boot_time(),
         "total_memory": sys.total_memory().to_string(),
