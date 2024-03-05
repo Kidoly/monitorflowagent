@@ -59,15 +59,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, api_key: &str, interval: &u64) -> serde_json::Value {
-    let mut total_cpu_usage = 0.0;
-    let mut cpu_count = 0;
-
-    for cpu in sys.cpus() {
-        total_cpu_usage += cpu.cpu_usage();
-        cpu_count += 1;
-    }
-
-    let avg_cpu_usage = total_cpu_usage / cpu_count as f32;
+    let avg_cpu_usage = sys
+        .cpus()
+        .iter()
+        .map(|cpu| cpu.cpu_usage())
+        .sum::<f32>() / sys.cpus().len() as f32;
 
     let monitor_image = match monitor.capture_image().map(|image| to_base64(image)) {
         Ok(image) => image,
