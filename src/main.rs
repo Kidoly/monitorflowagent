@@ -1,13 +1,10 @@
-use std::io::Cursor;
-use std::thread;
-use sysinfo::{System, Disks, Networks, Components, RefreshKind, CpuRefreshKind};
-use tokio::time::{sleep, Duration};
-use xcap::{Monitor, image::{RgbaImage}};
+use std::{io::Cursor, thread::sleep, time::Duration};
+use sysinfo::{System, Disks, Networks, Components};
+use xcap::{Monitor, image::RgbaImage};
 use std::env;
 use dotenv::dotenv;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok(); // Load .env file
 
     let api_key = env::var("API_KEY").expect("API_KEY not set in .env file");
@@ -27,24 +24,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	    if let Some(monitor) = monitors.first() {
             let data = generate_data(sys, disks, networks, components, monitor, &api_key, &interval);
-            let client = reqwest::Client::new();
+            
+            let req = ureq::request("POST", &api_url);
             println!("{:#?}", data);
 
             // Send a POST request
-            let response = client.post(&api_url)
-            .json(&data)
-            .send()
-            .await;
-        
+            let response =  req.set("Content-Type", "application/json")
+                .send_string(&data.to_string()); 
+
             match response {
                 Ok(response) => {
-                    if response.status().is_success() {
+                    if response.status() == 200 {
                         println!("Data sent successfully");
-                        let response_body = response.text().await?;
+                        let response_body = response.into_string().expect("Failed to read response body");
                         println!("Response: {}", response_body);
                     } else {
                         println!("Failed to send data: {}", response.status());
-                        let error_body = response.text().await?;
+                        let error_body = response.into_string().expect("Failed to read response body");
                         println!("Error details: {}", error_body);
                     }
                 },
@@ -54,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             eprintln!("No monitors found");
         }
         // Wait for the next iteration
-        sleep(Duration::from_secs(interval)).await;
+        sleep(Duration::from_secs(interval));
     }
 }
 
