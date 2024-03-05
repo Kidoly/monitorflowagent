@@ -11,14 +11,14 @@ This module is used by the application [monitorflow](https://github.com/Kidoly/m
 
 ##### For Debian/Ubuntu-based distributions:
 
-```
+```sh
 sudo apt-get update
 sudo apt-get install libxcb1-dev
 ```
 
 ##### For Fedora, CentOS, RHEL:
 
-```
+```sh
 sudo dnf install libxcb-devel  # Use dnf on Fedora
 # or
 sudo yum install libxcb-devel  # Use yum on CentOS/RHEL
@@ -26,7 +26,7 @@ sudo yum install libxcb-devel  # Use yum on CentOS/RHEL
 
 ##### For Arch:
 
-```
+```sh
 sudo pacman -S libxcb
 ```
 
@@ -34,14 +34,14 @@ sudo pacman -S libxcb
 
 #### Step 1: Clone the Repository
 
-```
+```sh
 git clone https://github.com/Kidoly/monitorflowmodule.git
 cd monitorflowmodule
 ```
 
 #### Step 2: Build the Program
 
-```
+```sh
 cargo build --release
 ```
 
@@ -49,10 +49,10 @@ This command compiles your program in release mode. The compiled binary will be 
 
 #### Step 3: Configuration
 
-You should modify the .env to your own PASSWORD and API_URL.
+You should modify the .env to your own API_KEY and API_URL.
 
 ```
-PASSWORD=YourPassword
+API_KEY=your_secret_api_key_here
 API_URL=http://localhost:3000/api/api_receive
 INTERVAL=600 # Time in seconds between each execution
 ```
@@ -61,7 +61,7 @@ INTERVAL=600 # Time in seconds between each execution
 
 To run the program, navigate to the directory and execute it:
 
-```
+```sh
 cargo run
 ```
 
@@ -103,7 +103,7 @@ WantedBy=multi-user.target
 
 2. Enable and start the service:
 
-```
+```sh
 sudo systemctl enable monitorflowmodule.service
 sudo systemctl start monitorflowmodule.service
 ```
