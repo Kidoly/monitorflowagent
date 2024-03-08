@@ -69,6 +69,31 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
         }
     };
 
+    let disks_json: Vec<serde_json::Value> = disks.iter()
+    .map(|disk| {
+        let name = disk.name();
+        let mounted_on = disk.mount_point().display().to_string();
+        serde_json::json!({
+            "file_system": disk.file_system(),
+            "total_space": disk.total_space(),
+            "available_space": disk.available_space(),
+        })
+    })
+    .collect();
+
+    let processes_json: Vec<serde_json::Value> = sys.processes()
+        .iter()
+        .map(|(pid, process)| {
+            serde_json::json!({
+                "pid": pid.as_u32(),
+                "name": process.name(),
+                "start_time": process.start_time(),
+                "cpu_usage": process.cpu_usage(),
+                "memory": process.memory(),
+            })
+        })
+        .collect();
+
     serde_json::json!({
         "api_key": api_key,
         "interval_time" : interval,
@@ -85,11 +110,10 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
         "cpu_name": sys.cpus()[0].brand(),
         "cpu_usage": avg_cpu_usage,
         "disks_numbers": disks.len(),
-        "disks": disks.iter().map(|disk|{format!("{disk:#?}")}).collect::<Vec<_>>(),
+        "disks": disks_json,
         "networks": networks.iter().map(|network|{format!("{network:#?}")}).collect::<Vec<_>>(),
-        "components": components.iter().map(|component|{format!("{component:#?}")}).collect::<Vec<_>>(),
         "processes_count": sys.processes().len(),
-        "processes": sys.processes().iter().map(|process|{format!("{process:#?}")}).collect::<Vec<_>>(),
+        "processes": processes_json,
         "monitor": monitor_image,
     })
 }
