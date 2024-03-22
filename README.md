@@ -79,6 +79,8 @@ Description=MonitorFlow Module Service
 ExecStart=/path/to/monitorflowmodule
 WorkingDirectory=/path/to/your/program/directory
 EnvironmentFile=/path/to/your/program/directory/.env
+User=youruser
+Group=yourusergroup
 Restart=always
 
 [Install]
@@ -95,6 +97,8 @@ Description=MonitorFlow Module Service
 ExecStart=/home/kidoly/monitorflowmodule/target/release/monitorflowmodule
 WorkingDirectory=/home/kidoly/monitorflowmodule
 EnvironmentFile=/home/kidoly/monitorflowmodule/.env
+User=kidoly
+Group=kidoly
 Restart=always
 
 [Install]

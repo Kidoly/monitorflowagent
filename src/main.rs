@@ -71,10 +71,10 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
 
     let disks_json: Vec<serde_json::Value> = disks.iter()
     .map(|disk| {
-        let name = disk.name();
-        let mounted_on = disk.mount_point().display().to_string();
+        let _name = format!("{:?}", disk.name());
+        let _mounted_on = disk.mount_point().display().to_string();
         serde_json::json!({
-            "file_system": disk.file_system(),
+            "name": format!("{:?}", disk.name()).replace("\"", ""),
             "total_space": disk.total_space(),
             "available_space": disk.available_space(),
         })
@@ -90,6 +90,25 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
                 "start_time": process.start_time(),
                 "cpu_usage": process.cpu_usage(),
                 "memory": process.memory(),
+            })
+        })
+        .collect();
+
+    let components_json: Vec<serde_json::Value> = components.iter()
+        .map(|component| {
+            serde_json::json!({
+                "name": component.label(),
+                "temperature": component.temperature(),
+                "max": component.max(),
+                "critical": component.critical(),
+            })
+        })
+        .collect();
+
+    let networks_json: Vec<serde_json::Value> = networks.iter()
+        .map(|network| {
+            serde_json::json!({
+                "name": format!("{network:?}"),
             })
         })
         .collect();
@@ -111,9 +130,10 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
         "cpu_usage": avg_cpu_usage,
         "disks_numbers": disks.len(),
         "disks": disks_json,
-        "networks": networks.iter().map(|network|{format!("{network:#?}")}).collect::<Vec<_>>(),
+        "networks": networks_json,
         "processes_count": sys.processes().len(),
         "processes": processes_json,
+        "components": components_json,
         "monitor": monitor_image,
     })
 }
