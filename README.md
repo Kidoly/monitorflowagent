@@ -54,7 +54,11 @@ You should modify the .env to your own API_KEY and API_URL.
 ```
 API_KEY=your_secret_api_key_here
 API_URL=http://localhost:3000/api/api_receive
+
 INTERVAL=600 # Time in seconds between each execution
+
+DISPLAY=:0
+RUST_BACKTRACE=1
 ```
 
 #### Step 4: Running the Program
