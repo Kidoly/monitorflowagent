@@ -2,10 +2,10 @@ use std::{io::Cursor, thread::sleep, time::Duration};
 use sysinfo::{System, Disks, Networks, Components};
 use xcap::{Monitor, image::RgbaImage};
 use std::env;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().ok(); // Load .env file
+    dotenv().expect(".env file not found");
 
     let api_key = env::var("API_KEY").expect("API_KEY not set in .env file");
     let api_url = env::var("API_URL").expect("API_URL not set in .env file");
@@ -22,15 +22,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let monitors = Monitor::all()?;
         sys.refresh_all();
 
-	    if let Some(monitor) = monitors.first() {
+            if let Some(monitor) = monitors.first() {
             let data = generate_data(sys, disks, networks, components, monitor, &api_key, &interval);
-            
             let req = ureq::request("POST", &api_url);
             println!("{:#?}", data);
 
             // Send a POST request
             let response =  req.set("Content-Type", "application/json")
-                .send_string(&data.to_string()); 
+                .send_string(&data.to_string());
 
             match response {
                 Ok(response) => {
@@ -54,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn generate_data(sys: System, disks: Disks, networks: Networks, components: Components, monitor: &Monitor, api_key: &str, interval: &u64) -> serde_json::Value {
+fn generate_data(sys: System, disks: Disks, networks: Networks, _components: Components, monitor: &Monitor, api_key: &str, interval: &u64) -> serde_json::Value {
     let avg_cpu_usage = sys
         .cpus()
         .iter()
@@ -71,10 +70,10 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
 
     let disks_json: Vec<serde_json::Value> = disks.iter()
     .map(|disk| {
-        let _name = format!("{:?}", disk.name());
+        let _name = disk.name();
         let _mounted_on = disk.mount_point().display().to_string();
         serde_json::json!({
-            "name": format!("{:?}", disk.name()).replace("\"", ""),
+            "file_system": disk.file_system(),
             "total_space": disk.total_space(),
             "available_space": disk.available_space(),
         })
@@ -90,25 +89,6 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
                 "start_time": process.start_time(),
                 "cpu_usage": process.cpu_usage(),
                 "memory": process.memory(),
-            })
-        })
-        .collect();
-
-    let components_json: Vec<serde_json::Value> = components.iter()
-        .map(|component| {
-            serde_json::json!({
-                "name": component.label(),
-                "temperature": component.temperature(),
-                "max": component.max(),
-                "critical": component.critical(),
-            })
-        })
-        .collect();
-
-    let networks_json: Vec<serde_json::Value> = networks.iter()
-        .map(|network| {
-            serde_json::json!({
-                "name": format!("{network:?}"),
             })
         })
         .collect();
@@ -130,10 +110,9 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, components: Comp
         "cpu_usage": avg_cpu_usage,
         "disks_numbers": disks.len(),
         "disks": disks_json,
-        "networks": networks_json,
+        "networks": networks.iter().map(|network|{format!("{network:#?}")}).collect::<Vec<_>>(),
         "processes_count": sys.processes().len(),
         "processes": processes_json,
-        "components": components_json,
         "monitor": monitor_image,
     })
 }
@@ -143,4 +122,3 @@ fn to_base64(image: RgbaImage) -> String {
     image.write_to(&mut c, image::ImageOutputFormat::Png).unwrap();
     base64::encode(c.into_inner())
 }
-
