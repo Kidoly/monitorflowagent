@@ -1,8 +1,16 @@
-use std::{io::Cursor, thread::sleep, time::Duration};
-use sysinfo::{System, Disks, Networks, Components};
-use xcap::{Monitor, image::RgbaImage};
-use std::env;
 use dotenvy::dotenv;
+use std::{
+    env,
+    fs::File,
+    io::{prelude::*, Cursor},
+    thread::sleep,
+    time::Duration,
+};
+use sysinfo::{Components, Disks, Networks, System};
+use xcap::{image::RgbaImage, Monitor};
+use base64::{engine::general_purpose, Engine};
+
+
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().expect(".env file not found");
@@ -120,5 +128,129 @@ fn generate_data(sys: System, disks: Disks, networks: Networks, _components: Com
 fn to_base64(image: RgbaImage) -> String {
     let mut c = Cursor::new(Vec::new());
     image.write_to(&mut c, image::ImageOutputFormat::Png).unwrap();
-    base64::encode(c.into_inner())
+    general_purpose::STANDARD.encode(c.into_inner())
+}
+
+//Read the uuid from the `info` file in the current directory.
+fn read_uuid() -> std::io::Result<uuid::Uuid> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let uuid = contents.split("-----BEGIN UUID-----\n").collect::<Vec<&str>>()[1].split("\n-----END UUID-----").collect::<Vec<&str>>()[0];
+    Ok(uuid::Uuid::parse_str(uuid).unwrap())
+}
+
+//Read the services to verify from the `info` file in the current directory.
+fn read_services_to_verify() -> std::io::Result<Vec<String>> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let services = contents.split("-----BEGIN SERVICES TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END SERVICES TO VERIFY-----").collect::<Vec<&str>>()[0];
+    Ok(services.split("\n").map(|s| s.to_string()).collect())
+}
+
+//Add a service to the `info` file in the current directory if it is not already there.
+fn add_service_to_verify(service: &str) -> std::io::Result<()> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let services = contents.split("-----BEGIN SERVICES TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END SERVICES TO VERIFY-----").collect::<Vec<&str>>()[0].to_string();
+    if !services.contains(service) {
+        let new_services = format!("{}\n{}", services, service);
+        let new_contents = contents.replace(&contents.split("-----BEGIN SERVICES TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END SERVICES TO VERIFY-----").collect::<Vec<&str>>()[0], &new_services);
+        let mut file = File::create("info").unwrap();
+        file.write_all(new_contents.as_bytes()).unwrap();
+    }
+    Ok(())
+}
+
+//Remove a service from the `info` file in the current directory.
+fn remove_service_to_verify(service: &str) -> std::io::Result<()> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let services = contents.split("-----BEGIN SERVICES TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END SERVICES TO VERIFY-----").collect::<Vec<&str>>()[0].to_string();
+    if services.contains(service) {
+        let new_services = services.replace(service, "");
+        let new_contents = contents.replace("\n\n", "\n");
+        let new_contents = contents.replace(&contents.split("-----BEGIN SERVICES TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END SERVICES TO VERIFY-----").collect::<Vec<&str>>()[0], &new_services);
+        let mut file = File::create("info").unwrap();
+        file.write_all(new_contents.as_bytes()).unwrap();
+    }
+    Ok(())
+}
+
+//Delete empty lines from the `info` file in the current directory.
+fn delete_empty_lines() -> std::io::Result<()> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let new_contents = contents.replace("\n\n", "\n");
+    let mut file = File::create("info").unwrap();
+    file.write_all(new_contents.as_bytes()).unwrap();
+    Ok(())
+}
+
+//Read the tasks to verify from the `info` file in the current directory.
+fn read_tasks_to_verify() -> std::io::Result<Vec<String>> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let tasks = contents.split("-----BEGIN TASKS TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END TASKS TO VERIFY-----").collect::<Vec<&str>>()[0];
+    Ok(tasks.split("\n").map(|s| s.to_string()).collect())
+}
+
+//Add a task to the `info` file in the current directory if it is not already there.
+fn add_task_to_verify(task: &str) -> std::io::Result<()> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let tasks = contents.split("-----BEGIN TASKS TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END TASKS TO VERIFY-----").collect::<Vec<&str>>()[0].to_string();
+    if !tasks.contains(task) {
+        let new_tasks = format!("{}\n{}", tasks, task);
+        let new_contents = contents.replace(&contents.split("-----BEGIN TASKS TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END TASKS TO VERIFY-----").collect::<Vec<&str>>()[0], &new_tasks);
+        let mut file = File::create("info").unwrap();
+        file.write_all(new_contents.as_bytes()).unwrap();
+    }
+    Ok(())
+}
+
+//Remove a task from the `info` file in the current directory.
+fn remove_task_to_verify(task: &str) -> std::io::Result<()> {
+    let mut file = File::open("info")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let tasks = contents.split("-----BEGIN TASKS TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END TASKS TO VERIFY-----").collect::<Vec<&str>>()[0].to_string();
+    if tasks.contains(task) {
+        let new_tasks = tasks.replace(task, "");
+        let new_contents = contents.replace("\n\n", "\n");
+        let new_contents = contents.replace(&contents.split("-----BEGIN TASKS TO VERIFY-----\n").collect::<Vec<&str>>()[1].split("\n-----END TASKS TO VERIFY-----").collect::<Vec<&str>>()[0], &new_tasks);
+        let mut file = File::create("info").unwrap();
+        file.write_all(new_contents.as_bytes()).unwrap();
+    }
+    Ok(())
+}
+
+//Create a file called `info` in the current directory that looks like this:
+//-----BEGIN UUID-----
+//[UUID]
+//-----END UUID-----
+//-----BEGIN SERVICES TO VERIFY-----
+//
+//-----END SERVICES TO VERIFY-----
+//-----BEGIN TASKS TO VERIFY-----
+//
+//-----END TASKS TO VERIFY-----
+//Where [UUID] is a randomly generated UUID. You can use the `uuid` crate to generate a UUID.
+fn create_info_file() -> std::io::Result<()> {
+    let mut file = File::create("info").unwrap();
+    let uuid = uuid::Uuid::new_v4();
+    file.write_all(format!("-----BEGIN UUID-----\n{}\n-----END UUID-----\n-----BEGIN SERVICES TO VERIFY-----\n\n-----END SERVICES TO VERIFY-----\n-----BEGIN TASKS TO VERIFY-----\n\n-----END TASKS TO VERIFY-----", uuid).as_bytes()).unwrap();
+    Ok(())
+}
+
+//Verify there is file called `info` in the current directory.
+fn test_info_file() -> std::io::Result<()> {
+    File::open("info")?;
+    Ok(())
 }
