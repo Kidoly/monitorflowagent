@@ -1,8 +1,8 @@
-# MonitorFlow Module
+# MonitorFlow Agent
 
 ### Description
 
-This module is used by the application [monitorflow](https://github.com/Kidoly/monitorflow) to monitor multiple servers/computer. It need to be installed on each server.
+This agent is used by the application [monitorflow](https://github.com/Kidoly/monitorflow) to monitor multiple servers/computer. It need to be installed on each server.
 
 ### Requirements
 
@@ -35,8 +35,8 @@ sudo pacman -S libxcb
 #### Step 1: Clone the Repository
 
 ```sh
-git clone https://github.com/Kidoly/monitorflowmodule.git
-cd monitorflowmodule
+git clone https://github.com/Kidoly/monitorflowagent.git
+cd monitorflowagent
 ```
 
 #### Step 2: Build the Program
@@ -45,7 +45,7 @@ cd monitorflowmodule
 cargo build --release
 ```
 
-This command compiles your program in release mode. The compiled binary will be located at 'target/release/monitorflowmodule'.
+This command compiles your program in release mode. The compiled binary will be located at 'target/release/monitorflowagent'.
 
 #### Step 3: Configuration
 
@@ -73,14 +73,14 @@ cargo run
 
 #### Linux (Using systemd)
 
-1. Create a systemd service file for your program at '/etc/systemd/system/monitorflowmodule.service'. Replace monitorflowmodule and /path/to/ with the actual path to your program:
+1. Create a systemd service file for your program at '/etc/systemd/system/monitorflowagent.service'. Replace monitorflowagent and /path/to/ with the actual path to your program:
 
 ```
 [Unit]
-Description=MonitorFlow Module Service
+Description=MonitorFlow Agent Service
 
 [Service]
-ExecStart=/path/to/monitorflowmodule
+ExecStart=/path/to/monitorflowagent
 WorkingDirectory=/path/to/your/program/directory
 EnvironmentFile=/path/to/your/program/directory/.env
 User=youruser
@@ -95,12 +95,12 @@ For example if you put the program in your home it should look like this:
 
 ```
 [Unit]
-Description=MonitorFlow Module Service
+Description=MonitorFlow Agent Service
 
 [Service]
-ExecStart=/home/kidoly/monitorflowmodule/target/release/monitorflowmodule
-WorkingDirectory=/home/kidoly/monitorflowmodule
-EnvironmentFile=/home/kidoly/monitorflowmodule/.env
+ExecStart=/home/kidoly/monitorflowagent/target/release/monitorflowagent
+WorkingDirectory=/home/kidoly/monitorflowagent
+EnvironmentFile=/home/kidoly/monitorflowagent/.env
 User=kidoly
 Group=kidoly
 Restart=always
@@ -112,8 +112,8 @@ WantedBy=multi-user.target
 2. Enable and start the service:
 
 ```sh
-sudo systemctl enable monitorflowmodule.service
-sudo systemctl start monitorflowmodule.service
+sudo systemctl enable monitorflowagent.service
+sudo systemctl start monitorflowagent.service
 ```
 
-This will set monitorflowmodule to start automatically at boot.
+This will set monitorflowagent to start automatically at boot.
